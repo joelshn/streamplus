@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script>
+      // Verificar si se ha ingresado la contraseña recientemente (dentro de los últimos 5 minutos)
+      var lastAccess = getCookie("lastAccess"); // Obtener el valor de la cookie "lastAccess"
+      var currentTime = new Date().getTime(); // Obtener la hora actual en milisegundos
+
+      if (!lastAccess || currentTime - lastAccess > 5 * 60 * 1000) {
+          // Si no hay cookie o ha pasado más de 5 minutos, solicitar la contraseña
+          var getin = prompt("Contraseña?: ");
+          if (getin === "10122005") {
+              // Establecer una cookie para registrar el último acceso
+              document.cookie = "lastAccess=" + currentTime + "; expires=" + new Date(currentTime + 5 * 60 * 1000).toUTCString();
+          } else {
+              location.href = '/error'; // Redirigir a la página de error
+          }
+      }
+
+      function getCookie(name) {
+          var cookieName = name + "=";
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+              var cookie = cookies[i];
+              while (cookie.charAt(0) === ' ') {
+                  cookie = cookie.substring(1);
+              }
+              if (cookie.indexOf(cookieName) === 0) {
+                  return parseInt(cookie.substring(cookieName.length, cookie.length));
+              }
+          }
+          return null;
+      }
+  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registro de Ventas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="contenedor">
+      <img class="logo" src="https://cdn.discordapp.com/attachments/1013896772638224584/1165548381293264966/Plus_1.png?ex=65474084&is=6534cb84&hm=e191203114a8a02fb89d3c53f76f3e82d170accaf2639f13f32723e10b6619c4&" alt="Logo de la empresa">
+    </div>
+    <h1>Registro de Ventas</h1>
+    <div>
+        <h2>Total del mes = {{ total_mes }} Lempiras</h2>
+    </div>
+    <div>
+        <h2>Ganado en todo el periodo = {{ total_ingresos }} Lempiras</h2>
+    </div>
+    <div>
+        <h2 class="pagosp">Pagos Pendientes = <span class="p"> {{ total_pendientes }} </span> </h2>
+    </div>
+    <button class="agg" type="button" onclick="mostrarFormularioAgregar()">Agregar Nueva Venta</button>
+
+    <div id="formularioAgregar" style="display: none;">
+        <h2>Agregar Nueva Venta</h2>
+        <form action="/agregar" method="post">
+            <input type="text" name="nombre_nuevo" placeholder="Nuevo Nombre" required>
+            <input type="text" name="numero_nuevo" placeholder="Nuevo Numero" required>
+            <input type="text" name="cuenta_nuevo" placeholder="Nueva Cuenta" required>
+            <input type="text" name="correo_nuevo" placeholder "Nuevo Correo" required>
+            <input type="text" name="monto_nuevo" placeholder="Nuevo Monto" required>
+            <input type="text" name="fecha_nuevo" placeholder="Nueva Fecha" required>
+            <select name="estado_pago_nuevo" required>
+                <option value="pendiente">Pendiente</option>
+                <option value="pagado">Pagado</option>
+            </select>
+            <button type="submit" name="accion" value="agregar">Agregar</button>
+        </form>
+    </div>  
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Numero</th>
+            <th>Cuenta</th>
+            <th>Correo de Cuenta</th>
+            <th>Monto</th>
+            <th>Fecha</th>
+            <th>Estado de Pago</th> <!-- Añadido para mostrar el estado de pago -->
+            <th>Acción</th>
+        </tr>
+        {% for venta in ventas %}
+            <tr>
+                <td>{{ venta[0] }}</td>
+                <td>{{ venta[1] }}</td>
+                <td>{{ venta[2] }}</td>
+                <td>{{ venta[3] }}</td>
+                <td>{{ venta[4] }}</td>
+                <td>{{ venta[5] }}</td>
+                <td>{{ venta[6] }}</td>
+                <td class="{{ 'pendiente' if venta[7] == 'Pendiente' else 'pagado' }}">{{ venta[7] }}</td>
+                <td>
+                    <button class="editar" onclick="editarFila(this)">Editar</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <div></div><h1>By Allan Hernandez</h1>
+
+    <script>
+        var editable = false;
+
+        function editarFila(button) {
+            if (editable) {
+                // Cambiar el botón a "Editar" en el modo de guardado
+                button.innerText = "Editar";
+
+                // Identificar la fila actual
+                var fila = button.parentNode.parentNode;
+
+                // Obtener los elementos de la fila
+                var elementos = fila.querySelectorAll('td');
+                var id = elementos[0].innerText;  // Supongamos que la primera celda contiene el ID
+                var nombre = elementos[1].innerText;  // Supongamos que la segunda celda contiene el nombre
+                var numero = elementos[2].innerText;  // Supongamos que la tercera celda contiene el número
+                var cuenta = elementos[3].innerText;  // Supongamos que la cuarta celda contiene la cuenta
+                var correo = elementos[4].innerText;  // Supongamos que la quinta celda contiene el correo
+                var monto = elementos[5].innerText;  // Supongamos que la sexta celda contiene el monto
+                var fecha = elementos[6].innerText;  // Supongamos que la séptima celda contiene la fecha
+                var estado_pago = elementos[7].innerText;  // Supongamos que la octava celda contiene el estado de pago
+
+                // Realizar una solicitud AJAX para actualizar la información en la base de datos
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/editar_venta", true);
+                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        // Hacer algo si es necesario, por ejemplo, recargar la página
+                        location.reload(); // Esto recargará la página
+                    }
+                };
+
+                // Supongamos que el formulario en Python espera datos en este formato
+                var data = "id=" + id + "&nombre=" + nombre + "&numero=" + numero + "&cuenta=" + cuenta + "&correo=" + correo + "&monto=" + monto + "&fecha=" + fecha + "&estado_pago=" + estado_pago;
+
+                xhr.send(data);
+            } else {
+                // Cambiar el botón a "Guardar" en el modo de edición
+                button.innerText = "Guardar";
+            }
+            editable = !editable;
+            actualizarVista();
+        }
+
+        function actualizarVista() {
+            var filas = document.querySelectorAll('tr');
+            filas.forEach(function (fila, index) {
+                if (index === 0) return; // Saltar la fila de encabezado
+                var elementos = fila.querySelectorAll('td');
+                elementos.forEach(function (elemento) {
+                    elemento.contentEditable = editable;
+                });
+            });
+        }
+
+        function mostrarFormularioAgregar() {
+            var formularioAgregar = document.getElementById('formularioAgregar');
+            formularioAgregar.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

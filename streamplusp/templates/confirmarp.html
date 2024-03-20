@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar Pedidos</title>
+</head>
+<body>
+    <h1>Confirmar Pedidos</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Número</th>
+            <th>Cuenta</th>
+            <th>Correo Electrónico</th>
+            <th>Monto</th>
+            <th>Fecha</th>
+            <th>Estado de Pago</th>
+            <th>Referido</th>
+            <th>Confirmar</th>
+        </tr>
+        {% for pedido in pedidos %}
+        <tr>
+            <td>{{ pedido[0] }}</td>
+            <td>{{ pedido[1] }}</td>
+            <td>{{ pedido[2] }}</td>
+            <td>{{ pedido[3] }}</td>
+            <td>{{ pedido[4] }}</td>
+            <td>{{ pedido[5] }}</td>
+            <td>{{ pedido[6] }}</td>
+            <td>{{ pedido[7] }}</td>
+            <td>{{ pedido[8] }}</td>
+            <td>
+                <form action="/confirmar_pedido/{{ pedido[0] }}" method="post">
+                    <input type="submit" value="Confirmar">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
