@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Clientes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% extends "base.html" %}
+    {% block title %}Inicio - Administracion de StreamPlus{% endblock %}
+
+    {% block content %}
+    <div class="header">
+        <h1>Ver Clientes</h1>
+    </div>
+    <div class="container">
+    <form method="POST">
+        <input type="text" name="search" placeholder="Buscar...">
+        <button type="submit">Buscar</button>
+    </form>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Número</th>
+        </tr>
+        {% for cliente in clientes %}
+        <tr>
+            <td>{{ cliente[0] }}</td>
+            <td>{{ cliente[1] }}</td>
+            <td>{{ cliente[2] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('index') }}">Volver</a>
+    </div>
+    {% endblock %}
+    <div class="footer">
+        &copy; 2024 StreamPlus. Todos los derechos reservados.
+    </div>
+</body>
+</html>

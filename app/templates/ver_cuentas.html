@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Cuentas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% extends "base.html" %}
+    {% block title %}Inicio - Administracion de StreamPlus{% endblock %}
+
+    {% block content %}
+    <div class="header">
+        <h1>Ver Cuentas</h1>
+    </div>
+    <div class="container">
+        <form method="POST">
+            <input type="text" name="search" placeholder="Buscar...">
+            <button type="submit">Buscar</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo de Cuenta</th>
+                    <th>Correo</th>
+                    <th>Contraseña</th>
+                    <th>Fecha de Creación</th>
+                    <th>Fecha de Vencimiento</th>
+                    <th>Perfiles</th>
+                    <th>Inversión</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cuenta in cuentas %}
+                <tr>
+                    <td>{{ cuenta[0] }}</td>
+                    <td>{{ cuenta[1] }}</td>
+                    <td>{{ cuenta[2] }}</td>
+                    <td>{{ cuenta[3] }}</td>
+                    <td>{{ cuenta[4] }}</td>
+                    <td>{{ cuenta[5] }}</td>
+                    <td>{{ cuenta[6] }}</td>
+                    <td>{{ cuenta[7] }}</td>
+                    <td>
+                        <a href="{{ url_for('editar_cuenta', cuenta_id=cuenta[0]) }}">Editar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('index') }}">Volver</a>
+    </div>
+    <div class="footer">
+        &copy; 2024 StreamPlus. Todos los derechos reservados.
+    </div>
+    {% endblock %}
+</body>
+</html>
