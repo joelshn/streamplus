@@ -265,11 +265,11 @@ def ver_ingresos():
     cursor.execute("SELECT SUM(ganancia) FROM ventas WHERE YEAR(fechaini) = %s", (current_year,))
     ingresos_anuales = cursor.fetchone()[0] or 0
 
-    # Ingresos por referidos mensuales y anuales
-    cursor.execute("SELECT referidos, SUM(ganancia) as ganancia_mensual FROM ventas WHERE MONTH(fechaini) = %s GROUP BY referidos", (current_month,))
+     # Ingresos por referidos mensuales y anuales
+    cursor.execute("SELECT referido, SUM(ganancia) as ganancia_mensual FROM ventas WHERE referido IS NOT NULL AND referido != '' AND MONTH(fechaini) = %s GROUP BY referido", (current_month,))
     referidos_mensuales = cursor.fetchall()
 
-    cursor.execute("SELECT referidos, SUM(ganancia) as ganancia_anual FROM ventas WHERE YEAR(fechaini) = %s GROUP BY referidos", (current_year,))
+    cursor.execute("SELECT referido, SUM(ganancia) as ganancia_anual FROM ventas WHERE referido IS NOT NULL AND referido != '' AND YEAR(fechaini) = %s GROUP BY referido", (current_year,))
     referidos_anuales = cursor.fetchall()
 
     db.close()
