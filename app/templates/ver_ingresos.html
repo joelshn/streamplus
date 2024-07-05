@@ -47,34 +47,38 @@
     </style>
 </head>
 <body>
-    {% extends "base.html" %}
-    {% block title %}Inicio - Administracion de StreamPlus{% endblock %}
+    <div class="container">
+        <div class="header">
+            <h1>StreamPlus - Ver Ingresos</h1>
+        </div>
 
-    {% block content %}
+        <div class="content">
+            <h1>Ingresos</h1>
+            <div class="income-details">
 
-<div class="container">
-    <div class="header">
-        <h1>StreamPlus - Ver Ingresos</h1>
-    </div>
+                <h2>Mensual por Referidos:</h2>
+                {% for referido in referidos_mensuales %}
+                    <p><strong>{{ referido[0] }}:</strong> ${{ referido[1] }}</p>
+                {% endfor %}
 
-    <div class="content">
-        <h1>Ingresos</h1>
-        <div class="income-details">
-            <p><strong>Ingresos Mensuales:</strong> ${{ ingresos_mensuales }}</p>
-            <p><strong>Ingresos Anuales:</strong> ${{ ingresos_anuales }}</p>
+                <h2>Anual por Referidos:</h2>
+                {% for referido in referidos_anuales %}
+                    <p><strong>{{ referido[0] }}:</strong> ${{ referido[1] }}</p>
+                {% endfor %}
+
+                <p><strong>Total Mensual:</strong> ${{ ingresos_mensuales }}</p>
+                <p><strong>Total Anual:</strong> ${{ ingresos_anuales }}</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 StreamPlus. Todos los derechos reservados.</p>
         </div>
     </div>
 
-    <div class="footer">
-        <p>&copy; 2024 StreamPlus. Todos los derechos reservados.</p>
-    </div>
-</div>
-
-<!-- Agregar jQuery -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<!-- Agregar Bootstrap JS -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-
-    {% endblock %}
+    <!-- Agregar jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Agregar Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -264,10 +264,19 @@ def ver_ingresos():
     current_year = datetime.now().year
     cursor.execute("SELECT SUM(ganancia) FROM ventas WHERE YEAR(fechaini) = %s", (current_year,))
     ingresos_anuales = cursor.fetchone()[0] or 0
-    
+
+    # Ingresos por referidos mensuales y anuales
+    cursor.execute("SELECT referidos, SUM(ganancia) as ganancia_mensual FROM ventas WHERE MONTH(fechaini) = %s GROUP BY referidos", (current_month,))
+    referidos_mensuales = cursor.fetchall()
+
+    cursor.execute("SELECT referidos, SUM(ganancia) as ganancia_anual FROM ventas WHERE YEAR(fechaini) = %s GROUP BY referidos", (current_year,))
+    referidos_anuales = cursor.fetchall()
+
     db.close()
+
+    return render_template('ver_ingresos.html', ingresos_mensuales=ingresos_mensuales, ingresos_anuales=ingresos_anuales,
+                           referidos_mensuales=referidos_mensuales, referidos_anuales=referidos_anuales)
     
-    return render_template('ver_ingresos.html', ingresos_mensuales=ingresos_mensuales, ingresos_anuales=ingresos_anuales)
 
 # Ruta para ver clientes que deben renovar
 @app.route('/ver_renovaciones')
