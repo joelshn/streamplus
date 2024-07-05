@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Pedido - StreamPlus</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h2>Agregar Pedido</h2>
+    <form method="POST" action="{{ url_for('agregar_pedido') }}">
+        <div class="form-group">
+            <label for="tipo_cuenta">Tipo de Cuenta</label>
+            <select class="form-control" id="tipo_cuenta" name="tipo_cuenta" required>
+                {% for tipo in tipos_cuenta %}
+                <option value="{{ tipo }}">{{ tipo }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="cuenta_disponible">Cuenta Disponible</label>
+            <select class="form-control" id="cuenta_disponible" name="cuenta_disponible" required>
+                {% for cuenta in cuentas_disponibles %}
+                <option value="{{ cuenta[0] }}">{{ cuenta[0] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="fechaini">Fecha de Inicio</label>
+            <input type="date" class="form-control" id="fechaini" name="fechaini" required>
+        </div>
+        <div class="form-group">
+            <label for="dias">Días</label>
+            <input type="number" class="form-control" id="dias" name="dias" required>
+        </div>
+        <div class="form-group">
+            <label for="monto">Monto</label>
+            <input type="number" class="form-control" id="monto" name="monto" step="0.01" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Agregar Pedido</button>
+    </form>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -4,12 +4,27 @@ from database import connect_db, get_next_id
 from decimal import Decimal
 from functools import wraps
 from flask import session
+import random
+import string
 
 app = Flask(__name__)
 app.secret_key = '29122020'
 
+PORCENTAJE_REFERIDO = 0.5
+
 def check_credentials(username, password):
-    return username == "allanh" and password == "ajhs2705"
+    db = connect_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT id, rol FROM usuarios WHERE nombre_usuario = %s AND contraseña = %s", (username, password))
+    user = cursor.fetchone()
+    db.close()
+    if user:
+        session['user_id'] = user[0]
+        session['username'] = username
+        session['rol'] = user[1]
+        return True
+    return False
+
 
 def login_required(f):
     @wraps(f)
@@ -19,6 +34,15 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session or session.get('rol') != 'admin':
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -27,10 +51,14 @@ def login():
         if check_credentials(username, password):
             session['username'] = username
             flash('Inicio de sesión exitoso', 'success')
-            return redirect(url_for('index'))
+            if session.get('rol') == 'admin':
+                return redirect(url_for('index'))  # Redirige a un dashboard de administrador
+            else:
+                return redirect(url_for('streamplus'))  # Redirige a la página principal
         else:
             flash('Nombre de usuario o contraseña incorrectos', 'danger')
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
@@ -38,7 +66,46 @@ def logout():
     flash('Sesión cerrada exitosamente', 'success')
     return redirect(url_for('login'))
 
-# Ruta principal
+#Ruta de Registro
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        nombre_usuario = request.form['nombre_usuario']
+        contraseña = request.form['contraseña']
+        numero_telefono = request.form['numero_telefono']
+        correo_electronico = request.form['correo_electronico']
+        codigo_referido = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        rol = 'usuario'
+
+        db = connect_db()
+        cursor = db.cursor()
+        cursor.execute("INSERT INTO usuarios (nombre_usuario, contraseña, numero_telefono, correo_electronico, codigo_referido, rol) VALUES (%s, %s, %s, %s, %s, %s)",
+                       (nombre_usuario, contraseña, numero_telefono, correo_electronico, codigo_referido, rol))
+        db.commit()
+        db.close()
+        flash('Usuario registrado exitosamente', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+#Ruta de Usuarios
+@app.route('/streamplus')
+@login_required
+def streamplus():
+    db = connect_db()
+    cursor = db.cursor()
+    
+    # Obtener el saldo actual del usuario
+    user_id = session['user_id']
+    cursor.execute("SELECT saldo FROM usuarios WHERE id = %s", (user_id,))
+    saldo_actual = cursor.fetchone()[0]
+    
+    db.close()
+    return render_template('streamplus.html', saldo_actual=saldo_actual)
+
+
+
+# Ruta principal Admin
 @app.route('/')
 @login_required
 def index():
@@ -188,12 +255,25 @@ def agregar_venta():
         fechaexp = fechaini + timedelta(days=dias)
         monto = float(request.form['monto'])
         inversion = get_inversion(cuenta_disponible)
-        ganancia = monto - inversion  # Calcular ganancia
+        gananciaref = "0.00"
+        referido = request.form['referido']
+       
+        if dias == '60':
+                inversion *= 2
+                ganancia = monto - inversion
+        elif dias == '90':
+                inversion *= 3
+                ganancia = monto - inversion
+
+        if referido != '' and referido == 'STREAMPLUS':
+            ganancia = monto - inversion
+        else :
+            gananciaref = float(monto - inversion) * PORCENTAJE_REFERIDO
         
         db = connect_db()
         cursor = db.cursor()
-        cursor.execute("INSERT INTO ventas (cliente, tipocuenta, cuenta_disponible, fechaini, dias, fechaexp, monto, inversion) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
-                       (cliente, tipo_cuenta, cuenta_disponible, fechaini, dias, fechaexp, monto, inversion))
+        cursor.execute("INSERT INTO ventas (cliente, tipocuenta, cuenta_disponible, fechaini, dias, fechaexp, monto, inversion, referido, gananciaref) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                       (cliente, tipo_cuenta, cuenta_disponible, fechaini, dias, fechaexp, monto, inversion, referido, gananciaref))
         db.commit()
         # Restar un perfil de perfiles en cuentas
         restar_perfil(cuenta_disponible)
@@ -266,17 +346,94 @@ def ver_ingresos():
     ingresos_anuales = cursor.fetchone()[0] or 0
 
      # Ingresos por referidos mensuales y anuales
-    cursor.execute("SELECT referido, SUM(ganancia) as ganancia_mensual FROM ventas WHERE referido IS NOT NULL AND referido != '' AND MONTH(fechaini) = %s GROUP BY referido", (current_month,))
+    cursor.execute("SELECT referido, SUM(gananciaref) as ganancia_mensual FROM ventas WHERE referido IS NOT NULL AND referido != '' AND MONTH(fechaini) = %s GROUP BY referido", (current_month,))
     referidos_mensuales = cursor.fetchall()
 
-    cursor.execute("SELECT referido, SUM(ganancia) as ganancia_anual FROM ventas WHERE referido IS NOT NULL AND referido != '' AND YEAR(fechaini) = %s GROUP BY referido", (current_year,))
+    cursor.execute("SELECT referido, SUM(gananciaref) as ganancia_anual FROM ventas WHERE referido IS NOT NULL AND referido != '' AND YEAR(fechaini) = %s GROUP BY referido", (current_year,))
     referidos_anuales = cursor.fetchall()
+
+    # Ventas mensuales y anuales de STREAMPLUS
+    cursor.execute("SELECT SUM(ganancia) FROM ventas WHERE referido = 'STREAMPLUS' AND MONTH(fechaini) = %s", (current_month,))
+    ventas_streamplus_mensual = cursor.fetchone()[0] or 0
+
+    cursor.execute("SELECT SUM(ganancia) FROM ventas WHERE referido = 'STREAMPLUS' AND YEAR(fechaini) = %s", (current_year,))
+    ventas_streamplus_anual = cursor.fetchone()[0] or 0
 
     db.close()
 
-    return render_template('ver_ingresos.html', ingresos_mensuales=ingresos_mensuales, ingresos_anuales=ingresos_anuales,
-                           referidos_mensuales=referidos_mensuales, referidos_anuales=referidos_anuales)
+    return render_template('ver_ingresos.html', 
+                           ingresos_mensuales=ingresos_mensuales, 
+                           ingresos_anuales=ingresos_anuales,
+                           referidos_mensuales=referidos_mensuales, 
+                           referidos_anuales=referidos_anuales,
+                           ventas_streamplus_mensual=ventas_streamplus_mensual,
+                           ventas_streamplus_anual=ventas_streamplus_anual)
     
+
+#Ruta Agregar Pedido
+@app.route('/agregar_pedido', methods=['GET', 'POST'])
+@login_required
+def agregar_pedido():
+    if request.method == 'POST':
+        cliente = session['user_id']
+        tipo_cuenta = request.form['tipo_cuenta']
+        cuenta_disponible = request.form['cuenta_disponible']
+        fechaini = datetime.strptime(request.form['fechaini'], '%Y-%m-%d')
+        dias = int(request.form['dias'])
+        fechaexp = fechaini + timedelta(days=dias)
+        monto = float(request.form['monto'])
+        inversion = get_inversion(cuenta_disponible)
+        referido = session['username']
+
+        gananciaref = (monto - inversion) * PORCENTAJE_REFERIDO
+
+        db = connect_db()
+        cursor = db.cursor()
+        cursor.execute("INSERT INTO pedidos (cliente, tipocuenta, cuenta_disponible, fechaini, dias, fechaexp, monto, inversion, referido, gananciaref) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                       (cliente, tipo_cuenta, cuenta_disponible, fechaini, dias, fechaexp, monto, inversion, referido, gananciaref))
+        db.commit()
+        db.close()
+
+        flash('Pedido agregado exitosamente', 'success')
+        return redirect(url_for('streamplus'))
+
+    tipos_cuenta = ["netflix", "disneyplus", "max", "spotify", "youtube", "primevideo"]
+    cuentas_disponibles = obtener_cuentas_disponibles()
+    return render_template('agregar_pedido.html', tipos_cuenta=tipos_cuenta, cuentas_disponibles=cuentas_disponibles)
+
+
+#Ruta Ver Ventas Usuario
+@app.route('/ver_ventas_usuario')
+@login_required
+def ver_ventas_usuario():
+    db = connect_db()
+    cursor = db.cursor()
+    user_referido = session['username']
+    cursor.execute("SELECT * FROM ventas WHERE referido = %s", (user_referido,))
+    ventas = cursor.fetchall()
+    db.close()
+    return render_template('ver_ventas_usuario.html', ventas=ventas)
+
+
+#Ruta ver ingresos del usuario
+@app.route('/ver_ingresos_usuario')
+@login_required
+def ver_ingresos_usuario():
+    db = connect_db()
+    cursor = db.cursor()
+    user_referido = session['username']
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+
+    cursor.execute("SELECT SUM(gananciaref) FROM ventas WHERE referido = %s AND MONTH(fechaini) = %s", (user_referido, current_month))
+    ingresos_mensuales = cursor.fetchone()[0] or 0
+
+    cursor.execute("SELECT SUM(gananciaref) FROM ventas WHERE referido = %s AND YEAR(fechaini) = %s", (user_referido, current_year))
+    ingresos_anuales = cursor.fetchone()[0] or 0
+
+    db.close()
+    return render_template('ver_ingresos_usuario.html', ingresos_mensuales=ingresos_mensuales, ingresos_anuales=ingresos_anuales)
+
 
 # Ruta para ver clientes que deben renovar
 @app.route('/ver_renovaciones')
@@ -355,6 +512,55 @@ def editar_cuenta(cuenta_id):
     cuenta = cursor.fetchone()
     db.close()
     return render_template('editar_cuenta.html', cuenta=cuenta)
+
+#Ruta para Retirar
+@app.route('/retirar_dinero', methods=['POST'])
+@login_required
+def retirar_dinero():
+    user_id = session['user_id']
+    cantidad = float(request.form['cantidad'])
+    metpago = request.form['metpago']
+    infopago = ''
+
+    if metpago == 'transferencia':
+        banco = request.form['banco']
+        cuenta = request.form['cuenta']
+        infopago = f'Banco: {banco}, Cuenta: {cuenta}'
+    elif metpago == 'tigo_money':
+        telefono = request.form['telefono']
+        infopago = f'Teléfono: {telefono}'
+    elif metpago == 'paypal':
+        paypal_email = request.form['paypal_email']
+        infopago = f'Correo PayPal: {paypal_email}'
+
+    db = connect_db()
+    cursor = db.cursor()
+    
+    # Obtener el saldo actual del usuario
+    cursor.execute("SELECT saldo FROM usuarios WHERE id = %s", (user_id,))
+    saldo_actual = cursor.fetchone()[0]
+
+    if cantidad > saldo_actual:
+        flash('Saldo insuficiente para retirar esa cantidad.', 'danger')
+        db.close()
+        return redirect(url_for('retirar'))
+
+    # Calcular el nuevo saldo del usuario
+    nuevo_saldo = saldo_actual - cantidad
+    
+    # Insertar en la tabla de retiros
+    cursor.execute("INSERT INTO retiros (usuario, cantidad, metpago, infopago, saldo_actual, estado) VALUES (%s, %s, %s, %s, %s, 'pendiente')",
+                   (user_id, cantidad, metpago, infopago, nuevo_saldo))
+    
+    # Actualizar el saldo del usuario
+    cursor.execute("UPDATE usuarios SET saldo = %s WHERE id = %s", (nuevo_saldo, user_id))
+    
+    db.commit()
+    db.close()
+    
+    flash('Solicitud de retiro realizada exitosamente.', 'success')
+    return redirect(url_for('retirar'))
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=19132)

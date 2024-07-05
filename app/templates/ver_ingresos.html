@@ -55,28 +55,36 @@
         <div class="content">
             <h1>Ingresos</h1>
             <div class="income-details">
-
-                <h2>Mensual por Referidos:</h2>
+                <h2>Ventas de STREAMPLUS:</h2>
+                <p><strong>Mensual:</strong> {{ ventas_streamplus_mensual }} L</p>
+                <p><strong>Anual:</strong> {{ ventas_streamplus_anual }} L</p>
+                <h2>Referidos:</h2>
                 {% for referido in referidos_mensuales %}
-                    <p><strong>{{ referido[0] }}:</strong> ${{ referido[1] }}</p>
+                    <p><strong>{{ referido[0] }}:</strong> {{ referido[1] }} L</p>
                 {% endfor %}
 
-                <h2>Anual por Referidos:</h2>
+                <h2>Anual</h2>
                 {% for referido in referidos_anuales %}
-                    <p><strong>{{ referido[0] }}:</strong> ${{ referido[1] }}</p>
+                    <p><strong>{{ referido[0] }}:</strong> {{ referido[1] }} L</p>
                 {% endfor %}
-
-                <h2>Total Ganado:</h2>
-                <p><strong>Mensual:</strong> ${{ ingresos_mensuales }}</p>
-                <p><strong>Anual:</strong> ${{ ingresos_anuales }}</p>
+                
+                 <h2>Total Ganado:</h2>
+                <p><strong>Mensual:</strong> {{ ingresos_mensuales }} L</p>
+                <p><strong>Anual:</strong> {{ ingresos_anuales }} L</p>
             </div>
         </div>
+        <br>
+         <button><a href="/">Volver</a></button>
 
+        <div class="footer">
+            <p>&copy; 2024 StreamPlus. Todos los derechos reservados.</p>
+        </div>
     </div>
 
     <!-- Agregar jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <!-- Agregar Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
