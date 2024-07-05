@@ -45,6 +45,15 @@
                     </div>
                     <button type="submit" class="btn btn-dark btn-block">Registrar</button>
                 </form>
+                {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li style="color: red;">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
                 <p class="text-center">¿Ya tienes cuenta? <a href="{{ url_for('register') }}">Iniciar Sesion</a></p>
             </div>
         </div>

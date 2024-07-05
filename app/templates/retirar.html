@@ -59,7 +59,37 @@
         </div>
         <button type="submit" class="btn btn-primary">Retirar</button>
     </form>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li style="color: red;">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
 </div>
+<h2>Historial de Retiros</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cantidad</th>
+                <th>Método de Pago</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for retiro in retiros %}
+            <tr>
+                <td>{{ retiro[0] }}</td>
+                <td>{{ retiro[1] }}</td>
+                <td>{{ retiro[2] }}</td>
+                <td>{{ retiro[3] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
 <script>
     function updatePaymentInfo() {

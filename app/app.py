@@ -514,10 +514,20 @@ def editar_cuenta(cuenta_id):
     return render_template('editar_cuenta.html', cuenta=cuenta)
 
 
-@app.route('/retirar')
+@app.route('/retirar', methods=['GET'])
 @login_required
 def retirar():
-    return render_template('retirar.html')
+    db = connect_db()
+    cursor = db.cursor()
+    user_id = session['user_id']
+
+    # Recuperar el historial de retiros
+    cursor.execute("SELECT id, cantidad, metpago, estado FROM retiros WHERE user_id = %s", (user_id,))
+    retiros = cursor.fetchall()
+
+    db.close()
+    return render_template('retirar.html', retiros=retiros)
+
 
 
 #Ruta para Retirar
