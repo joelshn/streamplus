@@ -513,6 +513,13 @@ def editar_cuenta(cuenta_id):
     db.close()
     return render_template('editar_cuenta.html', cuenta=cuenta)
 
+
+@app.route('/retirar')
+@login_required
+def retirar():
+    return render_template('retirar.html')
+
+
 #Ruta para Retirar
 @app.route('/retirar_dinero', methods=['POST'])
 @login_required
