@@ -3,24 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamPlus - Usuario</title>
+    <title> Inicio - StreamPlus </title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Agregar Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Agregar FontAwesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-<div class="container">
-    <h2>Bienvenido, {{ session.username }}</h2>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Saldo Actual: ${{ saldo_actual }}</h5>
-            <a href="{{ url_for('agregar_venta') }}" class="btn btn-primary">Agregar Pedido</a>
-            <a href="{{ url_for('ver_ventas') }}" class="btn btn-secondary">Ver Ventas</a>
-            <a href="{{ url_for('ver_ingresos') }}" class="btn btn-success">Ver Ingresos</a>
-            <a href="{{ url_for('retirar') }}" class="btn btn-danger">Retirar Dinero</a>
+    <div class="container">
+    
+        <div class="header">
+        <h2>Bienvenido, {{ session.username }}</h2>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Saldo Actual: ${{ saldo_actual }}</h5>
+        <div class="main-content">
+            <ul class="option-list"></ul>
+            <li><a href="{{ url_for('agregar_pedido') }}">Agregar Pedido</a></li>
+            <li><a href="{{ url_for('ver_ventas_usuario') }}">Ver Ventas</a></li>
+            <li><a href="{{ url_for('ver_ingresos_usuario') }}">Ver Ingresos</a></li>
+            <li> <a href="{{ url_for('retirar') }}">Retirar Dinero</a></li>
+        </ul>
+        {% endblock %}
         </div>
     </div>
 </div>
+<div class="footer">
+    <p>&copy; 2024 StreamPlus Todos los derechos reservados.</p>
+</div>
+
+<!-- Agregar jQuery -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<!-- Agregar Bootstrap JS -->
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<!-- Agregar FontAwesome JS -->
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
+
 </body>
-</html>
+</html>    

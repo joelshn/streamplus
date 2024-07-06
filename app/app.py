@@ -375,7 +375,7 @@ def ver_ingresos():
 @login_required
 def agregar_pedido():
     if request.method == 'POST':
-        cliente = session['user_id']
+        cliente = request.form['cliente']
         tipo_cuenta = request.form['tipo_cuenta']
         cuenta_disponible = request.form['cuenta_disponible']
         fechaini = datetime.strptime(request.form['fechaini'], '%Y-%m-%d')
@@ -384,7 +384,15 @@ def agregar_pedido():
         monto = float(request.form['monto'])
         inversion = get_inversion(cuenta_disponible)
         referido = session['username']
-
+        gananciaref = "0.00"
+        referido = request.form['referido']
+       
+        if dias == '60':
+                inversion *= 2
+                ganancia = monto - inversion
+        elif dias == '90':
+                inversion *= 3
+                ganancia = monto - inversion
         gananciaref = (monto - inversion) * PORCENTAJE_REFERIDO
 
         db = connect_db()

@@ -36,8 +36,12 @@
         </select><br>
         <label>Fecha de Activación:</label>
         <input type="date" name="fechaini" id="fechaini" required><br>
-        <label>Días:</label>
-        <input type="number" name="dias" id="dias" required><br>
+        <label>Duracion:</label>
+        <select class="form-control" id="dias" name="dias" required>
+            <option value="30">1 Mes</option>
+            <option value="60">2 Meses</option>
+            <option value="90">3 Meses</option>
+        </select>
         <label>Fecha de Expiración:</label>
         <input type="date" name="fechaexp" id="fechaexp" readonly><br>
         <label>Monto:</label>
