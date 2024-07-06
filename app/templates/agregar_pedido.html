@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agregar Pedido - StreamPlus</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-<div class="container">
+    <div class="container">
     <h2>Agregar Pedido</h2>
     <form method="POST" action="{{ url_for('agregar_pedido') }}">
         <label>ID: {{ next_id }}</label><br>
@@ -20,38 +20,32 @@
             {% endfor %}
         </select><br>
 
-        <div class="form-group">
             <label for="tipo_cuenta">Tipo de Cuenta</label>
             <select class="form-control" id="tipo_cuenta" name="tipo_cuenta" required>
                 {% for tipo in tipos_cuenta %}
                 <option value="{{ tipo }}">{{ tipo }}</option>
                 {% endfor %}
             </select>
-        </div>
-        <div class="form-group">
+        
             <label for="cuenta_disponible">Cuenta Disponible</label>
             <select class="form-control" id="cuenta_disponible" name="cuenta_disponible" required>
             </select>
-        </div>
-        <div class="form-group">
+        
+
             <label for="fechaini">Fecha de Activacion</label>
             <input type="date" class="form-control" id="fechaini" name="fechaini" required>
-        </div>
-        <div class="form-group">
+        
             <label for="dias">Duracion</label>
             <select class="form-control" id="dias" name="dias" required>
                 <option value="30">1 Mes</option>
                 <option value="60">2 Meses</option>
                 <option value="90">3 Meses</option>
             </select>
-        </div>
-        <div class="form-group">
+        
             <label for="monto">Monto</label>
             <input type="number" class="form-control" id="monto" name="monto" step="0.01" required>
-        </div>
         <button type="submit" class="btn btn-primary">Agregar Pedido</button>
     </form>
-</div>
 <script>
     $(document).ready(function() {
         $('#tipo_cuenta').change(function() {
@@ -94,7 +88,5 @@
         });
     });
 </script>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
