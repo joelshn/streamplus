@@ -383,9 +383,14 @@ def agregar_pedido():
         fechaexp = fechaini + timedelta(days=dias)
         monto = float(request.form['monto'])
         inversion = get_inversion(cuenta_disponible)
-        referido = session['username']
+        user_id = session['user_id']
+        # obtener referido
+        db = connect_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT codigo_referido FROM usuarios WHERE id = %s", (user_id,))
+        referido = cursor.fetchone()[0]
+
         gananciaref = "0.00"
-        referido = request.form['referido']
        
         if dias == '60':
                 inversion *= 2
@@ -404,10 +409,15 @@ def agregar_pedido():
 
         flash('Pedido agregado exitosamente', 'success')
         return redirect(url_for('streamplus'))
-
+    
+    # Obtener datos necesarios para el formulario
+    clientes = obtener_clientes()
     tipos_cuenta = ["netflix", "disneyplus", "max", "spotify", "youtube", "primevideo"]
     cuentas_disponibles = obtener_cuentas_disponibles()
-    return render_template('agregar_pedido.html', tipos_cuenta=tipos_cuenta, cuentas_disponibles=cuentas_disponibles)
+
+    next_id = get_next_id('ventas')
+
+    return render_template('agregar_pedido.html', next_id=next_id, clientes=clientes, tipos_cuenta=tipos_cuenta, cuentas_disponibles=cuentas_disponibles)
 
 
 #Ruta Ver Ventas Usuario
@@ -455,6 +465,40 @@ def ver_renovaciones():
     renovaciones = cursor.fetchall()
     db.close()
     return render_template('ver_renovaciones.html', renovaciones=renovaciones)
+
+# Ruta para ver y confirmar pedidos
+@app.route('/ver_pedidos', methods=['GET', 'POST'])
+@login_required
+def ver_pedidos():
+    db = connect_db()
+    cursor = db.cursor()
+
+    if request.method == 'POST':
+        pedido_id = request.form['pedido_id']
+        
+        # Obtener detalles del pedido
+        cursor.execute("SELECT cliente, tipocuenta, cuenta_disponible, fechaini, dias, fechaexp, monto, inversion, referido, gananciaref FROM pedidos WHERE id = %s", (pedido_id,))
+        pedido = cursor.fetchone()
+
+        # Mover a tabla ventas
+        cursor.execute(
+            "INSERT INTO ventas (cliente, tipocuenta, cuenta_disponible, fechaini, dias, fechaexp, monto, inversion, referido, gananciaref) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (pedido[0], pedido[1], pedido[2], pedido[3], pedido[4], pedido[5], pedido[6], pedido[7], pedido[8], pedido[9])
+        )
+
+        # Borrar de la tabla pedidos
+        cursor.execute("DELETE FROM pedidos WHERE id = %s", (pedido_id,))
+        db.commit()
+        db.close()
+
+        flash('Pedido confirmado y movido a ventas exitosamente', 'success')
+        return redirect(url_for('ver_pedidos'))
+
+    cursor.execute("SELECT * FROM pedidos")
+    pedidos = cursor.fetchall()
+    db.close()
+    return render_template('ver_pedidos.html', pedidos=pedidos)
+
 
 # Ruta para renovar una venta
 @app.route('/renovar_venta/<int:venta_id>', methods=['POST'])
